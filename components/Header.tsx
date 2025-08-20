@@ -19,7 +19,8 @@ export default function Header({
 
   const navItems = [
     { href: '/', label: 'Home' },
-    { href: '/players', label: 'Players' },
+    { href: '/players', label: 'Marketplace' },
+    { href: '/competition', label: 'Competition' },
     { href: '/portfolio', label: 'Portfolio' },
   ];
 

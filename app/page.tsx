@@ -21,7 +21,7 @@ export default function Home() {
                 href="/players" 
                 className="btn-primary text-lg px-8 py-3"
               >
-                Browse Players
+                Browse Marketplace
               </Link>
               <Link 
                 href="/competition" 
@@ -314,7 +314,7 @@ export default function Home() {
               href="/players" 
               className="bg-white text-purple-600 hover:bg-gray-100 font-medium py-3 px-8 rounded-lg transition-colors text-lg"
             >
-              Browse Players
+              Browse Marketplace
             </Link>
             <Link 
               href="/competition" 
