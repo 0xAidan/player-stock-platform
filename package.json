@@ -11,7 +11,9 @@
     "test": "jest",
     "contract:compile": "hardhat compile",
     "contract:test": "hardhat test",
-    "contract:deploy": "hardhat run scripts/deploy.js"
+    "contract:deploy": "hardhat run scripts/deploy.js",
+    "contract:deploy-shares": "hardhat run scripts/deploy-shares.js",
+    "contract:deploy-custodial": "hardhat run scripts/deploy-custodial.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",

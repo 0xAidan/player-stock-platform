@@ -4,36 +4,45 @@ export interface Player {
   team: string;
   position: string;
   imageUrl?: string;
-  currentPPR: number;
-  lastWeekPPR: number;
-  tokenSupply: number;
-  tokenPrice: number;
-  totalBurned: number;
-  totalEmitted: number;
+  currentPrice: number;
+  totalSupply: number;
+  circulatingSupply: number;
+  reservedSupply: number;
+  weeklyPerformance: number;
+  rollingAverage: number;
+  positionWeight: number;
   isActive: boolean;
 }
 
-export interface PlayerStats {
-  week: number;
-  pprPoints: number;
-  rushingYards?: number;
-  receivingYards?: number;
-  touchdowns?: number;
-  receptions?: number;
+export interface PlayerShare {
+  tokenId: number;
+  playerAddress: string;
+  shareAmount: number;
+  owner: string;
 }
 
-export interface PlayerStakingPosition {
-  player: string;
-  amount: number;
-  startTime: number;
-  lockEndTime: number;
-  lastRewardClaim: number;
+export interface WeeklyEntry {
+  user: string;
+  players: string[];
+  shareAmounts: number[];
+  totalScore: number;
+  rewardTier: number;
   isActive: boolean;
+  entryTime: number;
+}
+
+export interface WeeklyCompetition {
+  weekNumber: number;
+  totalEntries: number;
+  totalRewardPool: number;
+  leagueAverageScore: number;
+  isActive: boolean;
+  rewardsDistributed: boolean;
 }
 
 export interface Portfolio {
-  playerId: string;
-  tokensOwned: number;
+  playerAddress: string;
+  sharesOwned: number;
   averagePrice: number;
   totalValue: number;
   profitLoss: number;
@@ -41,7 +50,7 @@ export interface Portfolio {
 
 export interface Trade {
   id: string;
-  playerId: string;
+  playerAddress: string;
   type: 'buy' | 'sell';
   amount: number;
   price: number;
@@ -49,10 +58,33 @@ export interface Trade {
   txHash?: string;
 }
 
-export interface StakingRewards {
-  playerId: string;
-  pendingRewards: number;
-  performanceMultiplier: number;
-  baseReward: number;
-  totalReward: number;
+export interface CompetitionRewards {
+  user: string;
+  weekNumber: number;
+  rewardAmount: number;
+  tier: number;
+  performanceRatio: number;
+}
+
+export interface PositionWeight {
+  position: string;
+  weight: number;
+  description: string;
+}
+
+export interface BondingCurveSale {
+  playerAddress: string;
+  sharesIssued: number;
+  price: number;
+  timestamp: number;
+  weekNumber: number;
+}
+
+export interface AMMTrade {
+  playerAddress: string;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  discount: number;
+  timestamp: number;
 }
