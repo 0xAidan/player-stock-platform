@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Trophy, Users, Target, TrendingUp, Clock, Award, DollarSign } from 'lucide-react'
+import { Trophy, Users, Target, TrendingUp, Clock, Award, DollarSign, Coins } from 'lucide-react'
 import { PlayerStockService } from '@/lib/custodial-service'
 import CustodialAuth from './CustodialAuth'
+import ProportionalRewardDisplay from './ProportionalRewardDisplay'
 
 interface Player {
   id: string
@@ -102,7 +103,7 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
 
     const newEntry: LineupEntry = {
       playerId: player.id,
-      shares: Math.min(player.sharesOwned, 10), // Default to 10 shares or max owned
+      shares: Math.min(player.sharesOwned, 1), // Default to 1 share or max owned
       estimatedScore: 0
     }
 
@@ -117,8 +118,8 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
     const player = availablePlayers.find(p => p.id === playerId)
     if (!player) return
 
-    const maxShares = player.sharesOwned
-    const clampedShares = Math.max(1, Math.min(shares, maxShares))
+    const maxShares = Math.min(player.sharesOwned, 10) // Max 10 shares per player in competition
+    const clampedShares = Math.max(0.1, Math.min(shares, maxShares))
 
     setSelectedPlayers(selectedPlayers.map(p => 
       p.playerId === playerId 
@@ -137,6 +138,20 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
       const weightedScore = baseScore * (player.positionWeight / 1000)
       return total + (weightedScore * entry.shares)
     }, 0)
+  }
+
+  const calculateTotalShares = () => {
+    return selectedPlayers.reduce((total, entry) => total + entry.shares, 0)
+  }
+
+  const calculateEstimatedReward = () => {
+    // Mock calculation - in real implementation this would use actual competition data
+    const totalShares = calculateTotalShares()
+    const mockRewardPool = 10000 // $10,000 reward pool
+    const mockTotalShares = 500 // 500 total shares across all participants
+    
+    if (mockTotalShares === 0) return 0
+    return (mockRewardPool / mockTotalShares) * totalShares
   }
 
   const submitLineup = async () => {
@@ -255,7 +270,7 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium">{(player.currentPrice * 1000).toFixed(0)} wei</div>
+                    <div className="text-sm font-medium">${player.currentPrice.toFixed(3)}</div>
                     <div className="text-xs text-gray-500">{player.sharesOwned} shares</div>
                   </div>
                 </div>
@@ -308,13 +323,14 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
                         <label className="text-sm text-gray-600">Shares:</label>
                         <input
                           type="number"
-                          min="1"
-                          max={player.sharesOwned}
+                          min="0.1"
+                          max={Math.min(player.sharesOwned, 10)}
+                          step="0.1"
                           value={entry.shares}
-                          onChange={(e) => updateShares(entry.playerId, parseInt(e.target.value) || 1)}
-                          className="ml-2 w-16 px-2 py-1 border rounded text-sm"
+                          onChange={(e) => updateShares(entry.playerId, parseFloat(e.target.value) || 0.1)}
+                          className="ml-2 w-20 px-2 py-1 border rounded text-sm"
                         />
-                        <span className="text-xs text-gray-500 ml-1">/ {player.sharesOwned}</span>
+                        <span className="text-xs text-gray-500 ml-1">/ {Math.min(player.sharesOwned, 10)}</span>
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-gray-600">Weight: {(player.positionWeight / 1000).toFixed(1)}x</div>
@@ -325,8 +341,8 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
                 )
               })}
 
-              {/* Total Score */}
-              <div className="border-t pt-4">
+              {/* Total Score and Shares */}
+              <div className="border-t pt-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
@@ -334,6 +350,26 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
                   </div>
                   <div className="text-xl font-bold text-green-600">
                     {calculateTotalScore().toFixed(1)}
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Coins className="w-5 h-5 text-blue-600 mr-2" />
+                    <span className="font-medium">Total Shares Entered:</span>
+                  </div>
+                  <div className="text-lg font-semibold text-blue-600">
+                    {calculateTotalShares().toFixed(1)}
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <DollarSign className="w-5 h-5 text-purple-600 mr-2" />
+                    <span className="font-medium">Estimated Reward:</span>
+                  </div>
+                  <div className="text-lg font-semibold text-purple-600">
+                    ${calculateEstimatedReward().toFixed(2)}
                   </div>
                 </div>
               </div>
@@ -351,32 +387,79 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
         </div>
       </div>
 
-      {/* Reward Tiers */}
+      {/* Proportional Reward Calculator */}
+      {selectedPlayers.length > 0 && (
+        <div className="mt-8">
+          <ProportionalRewardDisplay
+            sharesEntered={calculateTotalShares()}
+            totalSharesInCompetition={500}
+            rewardPool={10000}
+            performanceRatio={calculateTotalScore() / 20} // Mock league average of 20
+          />
+        </div>
+      )}
+
+      {/* Reward System */}
       <div className="bg-white rounded-lg shadow-md p-6 mt-8">
         <h2 className="text-xl font-semibold mb-4 flex items-center">
           <Award className="w-5 h-5 mr-2" />
-          Reward Tiers
+          Proportional Reward System
         </h2>
-        <div className="grid md:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-yellow-50 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600 mb-2">Tier 1</div>
-            <div className="text-sm text-gray-600 mb-1">Top 10%</div>
-            <div className="text-lg font-semibold text-gray-900">50% of Pool</div>
+        
+        <div className="mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <h3 className="font-semibold text-blue-900 mb-2">🎯 How Rewards Work</h3>
+            <p className="text-blue-800 text-sm">
+              Your reward is <strong>proportional to the number of shares you enter</strong>. 
+              More shares = more rewards! The system calculates rewards based on your total shares 
+              relative to all shares entered in the competition.
+            </p>
           </div>
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600 mb-2">Tier 2</div>
-            <div className="text-sm text-gray-600 mb-1">11-25%</div>
-            <div className="text-lg font-semibold text-gray-900">25% of Pool</div>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="font-semibold mb-3 text-gray-900">📊 Performance Tiers</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
+                <span className="text-sm font-medium">Tier 1 (Top 10%)</span>
+                <span className="text-sm font-bold text-yellow-600">50% of Pool</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
+                <span className="text-sm font-medium">Tier 2 (11-25%)</span>
+                <span className="text-sm font-bold text-blue-600">25% of Pool</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-green-50 rounded">
+                <span className="text-sm font-medium">Tier 3 (26-50%)</span>
+                <span className="text-sm font-bold text-green-600">15% of Pool</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-purple-50 rounded">
+                <span className="text-sm font-medium">Tier 4 (51-75%)</span>
+                <span className="text-sm font-bold text-purple-600">10% of Pool</span>
+              </div>
+            </div>
           </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600 mb-2">Tier 3</div>
-            <div className="text-sm text-gray-600 mb-1">26-50%</div>
-            <div className="text-lg font-semibold text-gray-900">15% of Pool</div>
-          </div>
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600 mb-2">Tier 4</div>
-            <div className="text-sm text-gray-600 mb-1">51-75%</div>
-            <div className="text-lg font-semibold text-gray-900">10% of Pool</div>
+          
+          <div>
+            <h3 className="font-semibold mb-3 text-gray-900">💰 Proportional Distribution</h3>
+            <div className="space-y-3">
+              <div className="bg-gray-50 p-3 rounded">
+                <div className="text-sm font-medium text-gray-700">Example:</div>
+                <div className="text-xs text-gray-600 mt-1">
+                  • You enter 5 shares, total competition has 100 shares<br/>
+                  • You get 5% of your tier's reward pool<br/>
+                  • If Tier 1 pool is $1000, you get $50
+                </div>
+              </div>
+              <div className="bg-green-50 p-3 rounded">
+                <div className="text-sm font-medium text-green-700">Key Benefits:</div>
+                <div className="text-xs text-green-600 mt-1">
+                  • More shares = more rewards<br/>
+                  • Fair scaling within each tier<br/>
+                  • Encourages larger investments
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -386,9 +469,11 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
         <h3 className="text-lg font-semibold mb-4">Competition Rules</h3>
         <ul className="space-y-2 text-sm text-gray-600">
           <li>• Maximum 5 players per lineup</li>
+          <li>• Maximum 10 shares per player in competition</li>
           <li>• Performance scored vs league average with position-weighted adjustments</li>
           <li>• Lineups lock 1 hour before first game of the week</li>
           <li>• Rewards distributed based on performance tiers</li>
+          <li>• <strong>Rewards are proportional to shares entered</strong> - more shares = more rewards</li>
           <li>• Players with performance ratio &lt; 1.0 receive no rewards</li>
           <li>• Higher performance ratios earn higher tier placement</li>
         </ul>

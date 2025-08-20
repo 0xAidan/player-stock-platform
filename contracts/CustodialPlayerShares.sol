@@ -22,6 +22,7 @@ contract CustodialPlayerShares is Ownable, Pausable, ReentrancyGuard {
     // Constants
     uint256 public constant BASE_SHARE_SUPPLY = 10000; // 10k shares per player
     uint256 public constant MAX_LINEUP_SIZE = 5; // Max 5 players per lineup
+    uint256 public constant MAX_SHARES_PER_COMPETITION = 10; // Max 10 shares per player in competition
     uint256 public constant WEEKLY_ISSUANCE_BASE = 1000; // Base weekly issuance
     uint256 public constant AMM_DISCOUNT_BPS = 500; // 5% AMM discount
     uint256 public constant TRADING_FEE_BPS = 25; // 0.25% trading fee
@@ -80,6 +81,7 @@ contract CustodialPlayerShares is Ownable, Pausable, ReentrancyGuard {
         uint256[] shareAmounts;
         uint256 totalScore;
         uint256 rewardTier;
+        uint256 totalSharesEntered; // Total shares entered for proportional rewards
         bool isActive;
         uint256 entryTime;
     }
@@ -90,6 +92,7 @@ contract CustodialPlayerShares is Ownable, Pausable, ReentrancyGuard {
         uint256 totalEntries;
         uint256 totalRewardPool;
         uint256 leagueAverageScore;
+        uint256 totalSharesEntered; // Total shares entered across all participants
         bool isActive;
         bool rewardsDistributed;
     }
@@ -355,10 +358,13 @@ contract CustodialPlayerShares is Ownable, Pausable, ReentrancyGuard {
         require(playerAddresses.length > 0, "Must submit at least one player");
         require(!userWeeklyEntries[user].isActive, "Already has active entry");
         
-        // Verify user owns the shares
+        // Verify user owns the shares and check competition limits
+        uint256 totalSharesEntered = 0;
         for (uint256 i = 0; i < playerAddresses.length; i++) {
             ShareHolding storage holding = userShares[user][playerAddresses[i]];
             require(holding.amount >= shareAmounts[i], "Insufficient shares");
+            require(shareAmounts[i] <= MAX_SHARES_PER_COMPETITION, "Exceeds max shares per player");
+            totalSharesEntered += shareAmounts[i];
         }
         
         // Create weekly entry
@@ -368,6 +374,7 @@ contract CustodialPlayerShares is Ownable, Pausable, ReentrancyGuard {
             shareAmounts: shareAmounts,
             totalScore: 0,
             rewardTier: 0,
+            totalSharesEntered: totalSharesEntered,
             isActive: true,
             entryTime: block.timestamp
         });
@@ -379,11 +386,13 @@ contract CustodialPlayerShares is Ownable, Pausable, ReentrancyGuard {
                 totalEntries: 0,
                 totalRewardPool: 0,
                 leagueAverageScore: 0,
+                totalSharesEntered: 0,
                 isActive: true,
                 rewardsDistributed: false
             });
         }
         weeklyCompetitions[currentWeek].totalEntries++;
+        weeklyCompetitions[currentWeek].totalSharesEntered += totalSharesEntered;
         
         emit WeeklyEntrySubmitted(user, playerAddresses, shareAmounts);
     }
@@ -411,6 +420,79 @@ contract CustodialPlayerShares is Ownable, Pausable, ReentrancyGuard {
         player.weeklyPerformance = performance;
         
         emit PerformanceUpdated(playerAddress, performance, player.rollingAverage);
+    }
+    
+    // ============ REWARD CALCULATION FUNCTIONS ============
+    
+    /**
+     * @dev Calculate proportional rewards for a user based on their share count
+     * @param user The user address
+     * @param weekNumber The week number
+     * @return rewardAmount The calculated reward amount
+     */
+    function calculateProportionalReward(address user, uint256 weekNumber) public view returns (uint256 rewardAmount) {
+        WeeklyCompetition storage competition = weeklyCompetitions[weekNumber];
+        require(competition.isActive, "Competition not found");
+        require(competition.rewardsDistributed, "Rewards not yet distributed");
+        
+        WeeklyEntry storage entry = userWeeklyEntries[user];
+        require(entry.isActive, "No active entry for user");
+        require(entry.totalScore > 0, "User has no score");
+        
+        // Calculate base reward per share
+        uint256 baseRewardPerShare = competition.totalRewardPool / competition.totalSharesEntered;
+        
+        // User's reward is proportional to their total shares entered
+        rewardAmount = baseRewardPerShare * entry.totalSharesEntered;
+        
+        return rewardAmount;
+    }
+    
+    /**
+     * @dev Get competition statistics for a specific week
+     * @param weekNumber The week number
+     * @return totalEntries Total number of entries
+     * @return totalRewardPool Total reward pool amount
+     * @return totalSharesEntered Total shares entered across all participants
+     * @return leagueAverageScore Average score across all players
+     */
+    function getCompetitionStats(uint256 weekNumber) external view returns (
+        uint256 totalEntries,
+        uint256 totalRewardPool,
+        uint256 totalSharesEntered,
+        uint256 leagueAverageScore
+    ) {
+        WeeklyCompetition storage competition = weeklyCompetitions[weekNumber];
+        return (
+            competition.totalEntries,
+            competition.totalRewardPool,
+            competition.totalSharesEntered,
+            competition.leagueAverageScore
+        );
+    }
+    
+    /**
+     * @dev Get user's entry details for a specific week
+     * @param user The user address
+     * @param weekNumber The week number
+     * @return players Array of player addresses
+     * @return shareAmounts Array of share amounts
+     * @return totalScore User's total score
+     * @return totalSharesEntered Total shares entered by user
+     */
+    function getUserEntryDetails(address user, uint256 weekNumber) external view returns (
+        address[] memory players,
+        uint256[] memory shareAmounts,
+        uint256 totalScore,
+        uint256 totalSharesEntered
+    ) {
+        WeeklyEntry storage entry = userWeeklyEntries[user];
+        return (
+            entry.players,
+            entry.shareAmounts,
+            entry.totalScore,
+            entry.totalSharesEntered
+        );
     }
     
     // ============ VIEW FUNCTIONS ============

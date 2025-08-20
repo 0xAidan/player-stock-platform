@@ -27,6 +27,7 @@ export interface WeeklyEntry {
   shareAmounts: number[];
   totalScore: number;
   rewardTier: number;
+  totalSharesEntered: number; // Total shares entered for proportional rewards
   isActive: boolean;
   entryTime: number;
 }
@@ -36,6 +37,7 @@ export interface WeeklyCompetition {
   totalEntries: number;
   totalRewardPool: number;
   leagueAverageScore: number;
+  totalSharesEntered: number; // Total shares entered across all participants
   isActive: boolean;
   rewardsDistributed: boolean;
 }
@@ -64,6 +66,8 @@ export interface CompetitionRewards {
   rewardAmount: number;
   tier: number;
   performanceRatio: number;
+  sharesEntered: number; // Number of shares entered by user
+  proportionalReward: number; // Proportional reward based on shares
 }
 
 export interface PositionWeight {
@@ -96,17 +100,76 @@ export interface PriceHistoryPoint {
   volume: number;
 }
 
+// Updated to support fractional shares and time-based priority
 export interface MarketplaceListing {
   id: string;
   playerId: string;
   sellerId: string;
   sellerName: string;
-  shares: number;
+  shares: number; // Now supports fractional shares (e.g., 0.1, 1.5, etc.)
   price: number;
   createdAt: string;
   playerName: string;
   expiresAt?: string;
   isActive: boolean;
+  remainingShares: number; // Track remaining shares for partial fills
+  totalValue: number; // Total value of the listing
+}
+
+// New order book types
+export interface OrderBookLevel {
+  price: number;
+  totalShares: number;
+  orderCount: number;
+  orders: OrderBookOrder[];
+}
+
+export interface OrderBookOrder {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  shares: number;
+  remainingShares: number;
+  createdAt: string;
+  listingId: string;
+}
+
+export interface OrderBook {
+  playerId: string;
+  asks: OrderBookLevel[]; // Sell orders (ascending by price)
+  bids: OrderBookLevel[]; // Buy orders (descending by price)
+  lastUpdated: string;
+}
+
+// Enhanced trade execution
+export interface TradeExecution {
+  id: string;
+  buyerId: string;
+  sellerId: string;
+  playerId: string;
+  shares: number;
+  price: number;
+  totalValue: number;
+  executedAt: string;
+  listingId: string;
+  partialFill: boolean;
+}
+
+// User balance tracking for custodial system
+export interface UserBalance {
+  userId: string;
+  usdcBalance: number;
+  lastUpdated: string;
+}
+
+export interface PlayerStakingPosition {
+  player: string;
+  amount: number;
+  startTime: number;
+  lockEndTime: number;
+  lastRewardClaim: number;
+  isActive: boolean;
+  performanceMultiplier: number; // Frozen multiplier at stake time
 }
 
 export interface PlayerAnalytics {
