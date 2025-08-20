@@ -88,3 +88,66 @@ export interface AMMTrade {
   discount: number;
   timestamp: number;
 }
+
+// Enhanced marketplace types
+export interface PriceHistoryPoint {
+  timestamp: number;
+  price: number;
+  volume: number;
+}
+
+export interface MarketplaceListing {
+  id: string;
+  playerId: string;
+  sellerId: string;
+  sellerName: string;
+  shares: number;
+  price: number;
+  createdAt: string;
+  playerName: string;
+  expiresAt?: string;
+  isActive: boolean;
+}
+
+export interface PlayerAnalytics {
+  playerId: string;
+  currentPrice: number;
+  priceChange24h: number;
+  priceChange7d: number;
+  volume24h: number;
+  volume7d: number;
+  totalListings: number;
+  lowestAsk: number;
+  highestBid: number;
+  marketCap: number;
+  circulatingSupply: number;
+  performanceScore: number;
+  competitionRank?: number;
+  weeklyPerformance: number;
+  lastWeekPerformance: number;
+  positionWeight: number;
+  priceHistory: PriceHistoryPoint[];
+}
+
+export interface UserPortfolio {
+  playerId: string;
+  sharesOwned: number;
+  averagePrice: number;
+  totalValue: number;
+  profitLoss: number;
+  profitLossPercentage: number;
+  lastUpdated: string;
+}
+
+export interface TradeOrder {
+  id: string;
+  playerId: string;
+  userId: string;
+  type: 'buy' | 'sell';
+  shares: number;
+  price: number;
+  status: 'pending' | 'filled' | 'cancelled';
+  createdAt: string;
+  filledAt?: string;
+  totalValue: number;
+}
