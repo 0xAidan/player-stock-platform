@@ -162,15 +162,7 @@ export interface UserBalance {
   lastUpdated: string;
 }
 
-export interface PlayerStakingPosition {
-  player: string;
-  amount: number;
-  startTime: number;
-  lockEndTime: number;
-  lastRewardClaim: number;
-  isActive: boolean;
-  performanceMultiplier: number; // Frozen multiplier at stake time
-}
+
 
 export interface PlayerAnalytics {
   playerId: string;

@@ -150,7 +150,7 @@ export default function WeeklyCompetition({ playerStockService }: WeeklyCompetit
     const mockRewardPool = 10000 // $10,000 reward pool
     const mockTotalShares = 500 // 500 total shares across all participants
     
-    if (mockTotalShares === 0) return 0
+    if (mockTotalShares <= 0) return 0
     return (mockRewardPool / mockTotalShares) * totalShares
   }
 

@@ -44,7 +44,7 @@ export default function TradingModal({
     setError('');
 
     try {
-      await onTrade(player.id, tradeType, numAmount, player.tokenPrice);
+      await onTrade(player.id, tradeType, numAmount, player.currentPrice);
       onClose();
       setAmount('');
     } catch (err: any) {
@@ -54,7 +54,7 @@ export default function TradingModal({
     }
   };
 
-  const totalCost = parseFloat(amount) * player.tokenPrice;
+  const totalCost = parseFloat(amount) * player.currentPrice;
   const isValidAmount = !isNaN(parseFloat(amount)) && parseFloat(amount) > 0;
 
   return (
@@ -78,7 +78,7 @@ export default function TradingModal({
               <p className="text-sm text-gray-600">{player.team} • {player.position}</p>
             </div>
             <div className="text-right">
-              <p className="font-semibold">${player.tokenPrice.toFixed(2)}</p>
+              <p className="font-semibold">${player.currentPrice.toFixed(2)}</p>
               <p className="text-sm text-gray-600">per token</p>
             </div>
           </div>

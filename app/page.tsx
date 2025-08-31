@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { TrendingUp, Users, BarChart3, Wallet, Coins, Lock, Trophy, Target, Zap } from 'lucide-react'
-import TokenomicsCalculator from '@/components/TokenomicsCalculator'
+
 
 
 export default function Home() {
