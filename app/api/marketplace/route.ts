@@ -12,7 +12,9 @@ let marketplaceListings: MarketplaceListing[] = [
     price: 0.14,
     createdAt: new Date(Date.now() - 3600000).toISOString(),
     playerName: 'Patrick Mahomes',
-    isActive: true
+    isActive: true,
+    remainingShares: 50,
+    totalValue: 50 * 0.14
   },
   {
     id: '2',
@@ -23,7 +25,9 @@ let marketplaceListings: MarketplaceListing[] = [
     price: 0.11,
     createdAt: new Date(Date.now() - 7200000).toISOString(),
     playerName: 'Christian McCaffrey',
-    isActive: true
+    isActive: true,
+    remainingShares: 25,
+    totalValue: 25 * 0.11
   },
   {
     id: '3',
@@ -34,7 +38,9 @@ let marketplaceListings: MarketplaceListing[] = [
     price: 0.09,
     createdAt: new Date(Date.now() - 10800000).toISOString(),
     playerName: 'Tyreek Hill',
-    isActive: true
+    isActive: true,
+    remainingShares: 75,
+    totalValue: 75 * 0.09
   },
   {
     id: '4',
@@ -45,7 +51,9 @@ let marketplaceListings: MarketplaceListing[] = [
     price: 0.07,
     createdAt: new Date(Date.now() - 14400000).toISOString(),
     playerName: 'Travis Kelce',
-    isActive: true
+    isActive: true,
+    remainingShares: 30,
+    totalValue: 30 * 0.07
   },
   {
     id: '5',
@@ -56,7 +64,9 @@ let marketplaceListings: MarketplaceListing[] = [
     price: 0.13,
     createdAt: new Date(Date.now() - 18000000).toISOString(),
     playerName: 'Josh Allen',
-    isActive: true
+    isActive: true,
+    remainingShares: 40,
+    totalValue: 40 * 0.13
   }
 ]
 
@@ -247,7 +257,9 @@ export async function POST(request: Request) {
         price,
         playerName,
         createdAt: new Date().toISOString(),
-        isActive: true
+        isActive: true,
+        remainingShares: shares,
+        totalValue: shares * price
       }
 
       marketplaceListings.push(newListing)
